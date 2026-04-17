@@ -14,7 +14,7 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { getSuggestions } from "@/lib/suggestions";
 
 type CleanedRow = {
     revenue: number;
@@ -26,12 +26,22 @@ type CleanedRow = {
     debt: number;
 };
 
+const getScoreStatus = (score: number) => {
+    if (score >= 75) {
+        return { label: "Healthy", color: "bg-green-500" };
+    } else if (score >= 50) {
+        return { label: "Moderate", color: "bg-yellow-500" };
+    } else {
+        return { label: "At Risk", color: "bg-red-500" };
+    }
+};
 export default function UploadPage() {
     const [data, setData] = useState<CleanedRow | null>(null); // parse data
     const [score, setScore] = useState<number | null>(null); // score
     const [metrics, setMetrics] = useState<any>(null); // metrics
     const [insights, setInsights] = useState<any[]>([]); // insights
     const [simRevenue, setSimRevenue] = useState<number | null>(null); // simulated revenue for "what-if" analysis
+    const [suggestions, setSuggestions] = useState<string[]>([]); // improvement suggestions
 
     const getSimulatedScore = () => {
         if (!data || simRevenue === null) return null;
@@ -57,7 +67,7 @@ export default function UploadPage() {
         const m = calculateMetrics(updated);
         return calculateScore(m);
     };
-    
+
     const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -82,6 +92,8 @@ export default function UploadPage() {
                 const s = calculateScore(m);
                 const i = getInsights(m);
                 const r = cleaned.revenue;
+                const sg = getSuggestions(cleaned, m);
+                setSuggestions(sg);
 
                 setData(cleaned);
                 setMetrics(m);
@@ -275,6 +287,30 @@ export default function UploadPage() {
                                 ? "Growth improves profitability and asset strength"
                                 : "Decline increases financial pressure"}
                         </p>
+                    </Card>
+                )}
+
+                {suggestions.length > 0 && (
+                    <Card className="p-6 space-y-4">
+                        <div>
+                            <p className="text-lg font-semibold">
+                                Improvement Suggestions
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                                Actions to improve financial health
+                            </p>
+                        </div>
+
+                        <div className="space-y-3">
+                            {suggestions.map((item, index) => (
+                                <div key={index} className="flex items-start gap-3">
+                                    <div className="h-2 w-2 mt-1 rounded-full bg-primary" />
+                                    <p className="text-sm leading-relaxed">
+                                        {item}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
                     </Card>
                 )}
 
