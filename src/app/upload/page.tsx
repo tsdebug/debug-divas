@@ -4,6 +4,7 @@ import { useState, type ChangeEvent } from "react";
 import Papa, { type ParseResult } from "papaparse";
 import { calculateMetrics } from "@/lib/calculations";
 import { calculateScore } from "@/lib/scoring";
+import { getInsights } from "@/lib/insights";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,9 +27,10 @@ type CleanedRow = {
 };
 
 export default function UploadPage() {
-    const [data, setData] = useState<CleanedRow | null>(null);
-    const [score, setScore] = useState<number | null>(null);
-    const [metrics, setMetrics] = useState<any>(null);
+    const [data, setData] = useState<CleanedRow | null>(null); // parse data
+    const [score, setScore] = useState<number | null>(null); // score
+    const [metrics, setMetrics] = useState<any>(null); // metrics
+    const [insights, setInsights] = useState<any[]>([]); // insights
 
     const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -56,6 +58,7 @@ export default function UploadPage() {
                 setData(cleaned);
                 setMetrics(m);
                 setScore(s);
+                setInsights(getInsights(m));
             },
         });
     };
@@ -80,8 +83,7 @@ export default function UploadPage() {
                         Upload your financial data and instantly evaluate business performance
                     </p>
                 </div>
-
-                {/* ✅ KEEPING YOUR ORIGINAL UPLOAD CARD */}
+                {/* FILE UPLOAD */}
                 <Card className="border-border/60 shadow-sm">
                     <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="space-y-1">
@@ -109,7 +111,7 @@ export default function UploadPage() {
                     </CardContent>
                 </Card>
 
-                {/* 🔥 SCORE (IMPROVED) */}
+                {/* SCORE (IMPROVED) */}
                 {score !== null && (
                     <Card className="p-6 flex flex-col items-center space-y-4 shadow-sm">
                         <div
@@ -127,7 +129,7 @@ export default function UploadPage() {
                     </Card>
                 )}
 
-                {/* 🔥 METRICS */}
+                {/* METRICS */}
                 {metrics && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <Card className="p-4 text-center">
@@ -153,6 +155,41 @@ export default function UploadPage() {
                             </p>
                         </Card>
                     </div>
+                )}
+
+                {insights.length > 0 && (
+                    <Card className="p-6">
+                        <div>
+                            <p className="text-lg font-semibold">
+                                Score Breakdown
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                                Key factors influencing this score
+                            </p>
+                        </div>
+
+                        <div className="space-y-3">
+                            {insights.map((item, index) => (
+                                <div
+                                    key={index}
+                                    className="flex items-start gap-3"
+                                >
+                                    <div
+                                        className={`mt-1 h-2 w-2 rounded-full ${item.type === "positive"
+                                                ? "bg-green-500"
+                                                : item.type === "negative"
+                                                    ? "bg-red-500"
+                                                    : "bg-yellow-500"
+                                            }`}
+                                    />
+
+                                    <p className="text-sm leading-relaxed text-foreground">
+                                        {item.label}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    </Card>
                 )}
 
                 {/* CLEAN DATA VIEW */}
