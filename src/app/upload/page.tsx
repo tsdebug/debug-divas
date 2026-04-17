@@ -116,6 +116,8 @@ export default function UploadPage() {
         return "bg-red-500";
     };
 
+    const simScore = getSimulatedScore();
+
     return (
         <div className="min-h-screen bg-gradient-to-b from-background to-muted/40 px-4 py-10 md:px-8">
             <div className="mx-auto max-w-5xl space-y-6">
@@ -255,25 +257,32 @@ export default function UploadPage() {
                             step={1000}
                             value={simRevenue}
                             onChange={(e) => setSimRevenue(Number(e.target.value))}
-                            className="w-full"
+                            className="w-full accent-primary cursor-pointer"
                         />
 
                         <div className="flex justify-between text-sm text-muted-foreground">
-                            <span>{Math.round(data.revenue * 0.5)}</span>
-                            <span>{Math.round(data.revenue * 1.5)}</span>
+                            <span>{Math.round(data.revenue * 0.7)}</span>
+                            <span>{Math.round(data.revenue * 1.8)}</span>
                         </div>
 
                         {/* Values */}
                         <div className="flex justify-between items-center font-xl font-medium">
                             <p className="text-sm">
                                 Simulated Revenue:{" "}
-                                <span className="font-semibold text-red-500">{simRevenue}</span>
+                                <span className="font-semibold text-orange-500">{simRevenue}</span>
                             </p>
 
                             <p className="text-sm">
                                 New Score:{" "}
-                                <span className="font-bold text-blue-600">
-                                    {getSimulatedScore()}
+                                <span
+                                    className={`font-bold ${simScore && score && simScore > score
+                                        ? "text-green-600"
+                                        : simScore && score && simScore < score
+                                            ? "text-red-600"
+                                            : "text-blue-600"
+                                        }`}
+                                >
+                                    {simScore}
                                 </span>
                             </p>
                         </div>
@@ -315,16 +324,14 @@ export default function UploadPage() {
                 )}
 
                 {/* CLEAN DATA VIEW */}
-                {data && (
-                    <Card className="p-4">
-                        <p className="text-sm text-muted-foreground mb-2">
-                            Parsed Data
-                        </p>
-                        <pre className="text-xs overflow-auto">
-                            {JSON.stringify(data, null, 2)}
-                        </pre>
-                    </Card>
-                )}
+                <details>
+                    <summary className="cursor-pointer text-x">
+                        View Parsed Data
+                    </summary>
+                    <pre className="text-xs mt-2 overflow-auto">
+                        {JSON.stringify(data, null, 2)}
+                    </pre>
+                </details>
             </div>
         </div>
     );
