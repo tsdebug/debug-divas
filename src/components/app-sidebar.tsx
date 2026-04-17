@@ -15,163 +15,83 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { LayoutDashboardIcon, ListIcon, ChartBarIcon, FolderIcon, UsersIcon, CameraIcon, FileTextIcon, Settings2Icon, CircleHelpIcon, SearchIcon, DatabaseIcon, FileChartColumnIcon, FileIcon, CommandIcon } from "lucide-react"
+import {
+  LayoutDashboardIcon,
+  UploadIcon,
+  ShieldAlertIcon,
+  TrendingUpIcon,
+  HistoryIcon,
+  Settings2Icon,
+  CircleHelpIcon,
+  FileChartColumnIcon,
+  DatabaseIcon,
+  FileTextIcon,
+  ActivityIcon,
+} from "lucide-react"
 
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+    name: "Analyst",
+    email: "analyst@finhealth.ai",
+    avatar: "/avatars/user.jpg",
   },
+
   navMain: [
     {
       title: "Dashboard",
-      url: "#",
-      icon: (
-        <LayoutDashboardIcon
-        />
-      ),
+      url: "/",
+      icon: <LayoutDashboardIcon />,
     },
     {
-      title: "Lifecycle",
-      url: "#",
-      icon: (
-        <ListIcon
-        />
-      ),
+      title: "Upload Data",
+      url: "/upload",
+      icon: <UploadIcon />,
     },
     {
-      title: "Analytics",
-      url: "#",
-      icon: (
-        <ChartBarIcon
-        />
-      ),
+      title: "Risk Assessment",
+      url: "/risk",
+      icon: <ShieldAlertIcon />,
     },
     {
-      title: "Projects",
-      url: "#",
-      icon: (
-        <FolderIcon
-        />
-      ),
+      title: "Investment Insights",
+      url: "/insights",
+      icon: <TrendingUpIcon />,
     },
     {
-      title: "Team",
-      url: "#",
-      icon: (
-        <UsersIcon
-        />
-      ),
+      title: "Score History",
+      url: "/history",
+      icon: <HistoryIcon />,
     },
   ],
-  navClouds: [
+
+  documents: [
     {
-      title: "Capture",
-      icon: (
-        <CameraIcon
-        />
-      ),
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
+      name: "Financial Reports",
+      url: "/reports",
+      icon: <FileChartColumnIcon />,
     },
     {
-      title: "Proposal",
-      icon: (
-        <FileTextIcon
-        />
-      ),
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
+      name: "SME Data Library",
+      url: "/data-library",
+      icon: <DatabaseIcon />,
     },
     {
-      title: "Prompts",
-      icon: (
-        <FileTextIcon
-        />
-      ),
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
+      name: "Score Explanations",
+      url: "/explanations",
+      icon: <FileTextIcon />,
     },
   ],
+
   navSecondary: [
     {
       title: "Settings",
-      url: "#",
-      icon: (
-        <Settings2Icon
-        />
-      ),
+      url: "/settings",
+      icon: <Settings2Icon />,
     },
     {
       title: "Get Help",
-      url: "#",
-      icon: (
-        <CircleHelpIcon
-        />
-      ),
-    },
-    {
-      title: "Search",
-      url: "#",
-      icon: (
-        <SearchIcon
-        />
-      ),
-    },
-  ],
-  documents: [
-    {
-      name: "Data Library",
-      url: "#",
-      icon: (
-        <DatabaseIcon
-        />
-      ),
-    },
-    {
-      name: "Reports",
-      url: "#",
-      icon: (
-        <FileChartColumnIcon
-        />
-      ),
-    },
-    {
-      name: "Word Assistant",
-      url: "#",
-      icon: (
-        <FileIcon
-        />
-      ),
+      url: "/help",
+      icon: <CircleHelpIcon />,
     },
   ],
 }
@@ -186,19 +106,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:p-1.5!"
             >
-              <a href="#">
-                <CommandIcon className="size-5!" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+              <a href="/">
+                <ActivityIcon className="size-5!" />
+                <span className="text-base font-semibold">FinHealth AI</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+
       <SidebarContent>
         <NavMain items={data.navMain} />
         <NavDocuments items={data.documents} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
+
       <SidebarFooter>
         <NavUser user={data.user} />
       </SidebarFooter>
