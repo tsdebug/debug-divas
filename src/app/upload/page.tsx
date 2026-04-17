@@ -31,7 +31,33 @@ export default function UploadPage() {
     const [score, setScore] = useState<number | null>(null); // score
     const [metrics, setMetrics] = useState<any>(null); // metrics
     const [insights, setInsights] = useState<any[]>([]); // insights
+    const [simRevenue, setSimRevenue] = useState<number | null>(null); // simulated revenue for "what-if" analysis
 
+    const getSimulatedScore = () => {
+        if (!data || simRevenue === null) return null;
+
+        const growth = simRevenue / data.revenue;
+
+        // Efficiency improves slightly with growth
+        const efficiencyGain = 0.02 * (growth - 1);
+        // e.g. 10% growth → 0.2% better margin
+
+        const baseMargin = data.netProfit / data.revenue;
+        const newMargin = baseMargin + efficiencyGain;
+
+        const newProfit = simRevenue * newMargin;
+
+        const updated = {
+            ...data,
+            revenue: simRevenue,
+            netProfit: newProfit,
+            expenses: simRevenue - newProfit,
+        };
+
+        const m = calculateMetrics(updated);
+        return calculateScore(m);
+    };
+    
     const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -54,14 +80,22 @@ export default function UploadPage() {
 
                 const m = calculateMetrics(cleaned);
                 const s = calculateScore(m);
+                const i = getInsights(m);
+                const r = cleaned.revenue;
 
                 setData(cleaned);
                 setMetrics(m);
                 setScore(s);
-                setInsights(getInsights(m));
+                setInsights(i);
+                setSimRevenue(r);
             },
         });
     };
+
+    const growthPercent =
+        simRevenue && data
+            ? ((simRevenue - data.revenue) / data.revenue) * 100
+            : 0;
 
     const getColor = () => {
         if (!score) return "bg-gray-400";
@@ -176,10 +210,10 @@ export default function UploadPage() {
                                 >
                                     <div
                                         className={`mt-1 h-2 w-2 rounded-full ${item.type === "positive"
-                                                ? "bg-green-500"
-                                                : item.type === "negative"
-                                                    ? "bg-red-500"
-                                                    : "bg-yellow-500"
+                                            ? "bg-green-500"
+                                            : item.type === "negative"
+                                                ? "bg-red-500"
+                                                : "bg-yellow-500"
                                             }`}
                                     />
 
@@ -189,6 +223,58 @@ export default function UploadPage() {
                                 </div>
                             ))}
                         </div>
+                    </Card>
+                )}
+
+                {data && simRevenue !== null && (
+                    <Card className="p-6 space-y-1">
+                        <div>
+                            <p className="text-lg font-semibold">What-if Simulator</p>
+                            <p className="text-sm text-muted-foreground">
+                                Adjust revenue to see how your score changes
+                            </p>
+                        </div>
+
+                        {/* Slider */}
+                        <input
+                            type="range"
+                            min={data.revenue * 0.7}
+                            max={data.revenue * 1.8}
+                            step={1000}
+                            value={simRevenue}
+                            onChange={(e) => setSimRevenue(Number(e.target.value))}
+                            className="w-full"
+                        />
+
+                        <div className="flex justify-between text-sm text-muted-foreground">
+                            <span>{Math.round(data.revenue * 0.5)}</span>
+                            <span>{Math.round(data.revenue * 1.5)}</span>
+                        </div>
+
+                        {/* Values */}
+                        <div className="flex justify-between items-center font-xl font-medium">
+                            <p className="text-sm">
+                                Simulated Revenue:{" "}
+                                <span className="font-semibold text-red-500">{simRevenue}</span>
+                            </p>
+
+                            <p className="text-sm">
+                                New Score:{" "}
+                                <span className="font-bold text-blue-600">
+                                    {getSimulatedScore()}
+                                </span>
+                            </p>
+                        </div>
+
+                        <p className="text-sm text-muted-foreground">
+                            Growth: {growthPercent.toFixed(1)}%
+                        </p>
+
+                        <p className="text-sm">
+                            {growthPercent > 0
+                                ? "Growth improves profitability and asset strength"
+                                : "Decline increases financial pressure"}
+                        </p>
                     </Card>
                 )}
 
