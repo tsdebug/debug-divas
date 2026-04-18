@@ -1,117 +1,120 @@
 "use client";
 
-import { useState, type ChangeEvent } from "react";
-import Papa, { type ParseResult } from "papaparse";
-
+import { useState } from "react";
+import Link from "next/link";
+import { useFinancial } from "@/context/financial-context";
 import { calculateMetrics } from "@/lib/calculations";
 import { calculateScore } from "@/lib/scoring";
-import { getInsights } from "@/lib/insights";
-import { getSuggestions } from "@/lib/suggestions";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-type CleanedRow = {
-  revenue: number;
-  expenses: number;
-  netProfit: number;
-  assets: number;
-  liabilities: number;
-  equity: number;
-  debt: number;
-};
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  RadarChart, Radar, PolarGrid, PolarAngleAxis,
+  LineChart, Line,
+} from "recharts";
 
-export default function Page() {
-  const [data, setData] = useState<CleanedRow | null>(null);
-  const [score, setScore] = useState<number | null>(null);
-  const [metrics, setMetrics] = useState<any>(null);
-  const [insights, setInsights] = useState<any[]>([]);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [simRevenue, setSimRevenue] = useState<number | null>(null);
+export default function DashboardPage() {
+  const {
+    data,
+    metrics,
+    score,
+    insights,
+    suggestions,
+    fileName,
+    analyzedAt,
+    aiSummary,
+    aiLoading,
+    generateSummary,
+  } = useFinancial();
+  const [simRevenue, setSimRevenue] = useState<number | null>(data?.revenue ?? null);
+  
 
-  const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // Keep simRevenue in sync when new data loads
+  if (data && simRevenue === null) setSimRevenue(data.revenue);
 
-    Papa.parse<Record<string, string>>(file, {
-      header: true,
-      complete: (results: ParseResult<Record<string, string>>) => {
-        const row = results.data[0];
-        if (!row) return;
-
-        const cleaned: CleanedRow = {
-          revenue: Number(row.revenue),
-          expenses: Number(row.expenses),
-          netProfit: Number(row.netProfit),
-          assets: Number(row.assets),
-          liabilities: Number(row.liabilities),
-          equity: Number(row.equity),
-          debt: Number(row.debt),
-        };
-
-        const m = calculateMetrics(cleaned);
-        const s = calculateScore(m);
-        const i = getInsights(m);
-        const sg = getSuggestions(cleaned, m);
-
-        setData(cleaned);
-        setMetrics(m);
-        setScore(s);
-        setInsights(i);
-        setSuggestions(sg);
-        setSimRevenue(cleaned.revenue);
-      },
-    });
-  };
-
+  // ── Simulated score ───────────────────────────────────────
   const getSimulatedScore = () => {
     if (!data || simRevenue === null) return null;
-
     const growth = simRevenue / data.revenue;
     const efficiencyGain = 0.02 * (growth - 1);
-
     const baseMargin = data.netProfit / data.revenue;
     const newMargin = baseMargin + efficiencyGain;
-
     const newProfit = simRevenue * newMargin;
-
-    const updated = {
-      ...data,
-      revenue: simRevenue,
-      netProfit: newProfit,
-      expenses: simRevenue - newProfit,
-    };
-
-    const m = calculateMetrics(updated);
-    return calculateScore(m);
+    const updated = { ...data, revenue: simRevenue, netProfit: newProfit, expenses: simRevenue - newProfit };
+    return calculateScore(calculateMetrics(updated));
   };
 
   const simScore = getSimulatedScore();
+  const growthPercent = simRevenue && data ? ((simRevenue - data.revenue) / data.revenue) * 100 : 0;
 
-  const getColor = () => {
+  const getScoreColor = () => {
     if (score === null) return "bg-gray-400";
-    if (score > 75) return "bg-green-500";
-    if (score > 50) return "bg-yellow-500";
+    if (score >= 75) return "bg-green-500";
+    if (score >= 50) return "bg-yellow-500";
     return "bg-red-500";
   };
 
-  const growthPercent =
-    simRevenue && data
-      ? ((simRevenue - data.revenue) / data.revenue) * 100
-      : 0;
+  // ── No data state ─────────────────────────────────────────
+  if (!data || !metrics || score === null) {
+    return (
+      <SidebarProvider
+        style={{
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
+        } as React.CSSProperties}
+      >
+        <AppSidebar variant="inset" />
+        <SidebarInset className="bg-background">
+          <SiteHeader />
+          <div className="flex flex-1 flex-col items-center justify-center min-h-screen gap-4">
+            <p className="text-xl font-medium">No data uploaded yet</p>
+            <p className="text-muted-foreground">Upload a CSV file to see your financial analysis</p>
+            <Button asChild>
+              <Link href="/upload">Upload Data</Link>
+            </Button>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    );
+  }
+
+  // ── Chart data ────────────────────────────────────────────
+  const barData = [
+    { name: "Revenue",   value: data.revenue },
+    { name: "Expenses",  value: data.expenses },
+    { name: "Net Profit",value: data.netProfit },
+    { name: "Assets",    value: data.assets },
+    { name: "Debt",      value: data.debt },
+  ];
+
+  const radarData = [
+    { metric: "Liquidity",      value: Math.min(metrics.liquidity * 33, 100) },
+    { metric: "Profitability",  value: Math.min(metrics.profitability * 200, 100) },
+    { metric: "Leverage",       value: Math.max(100 - metrics.leverage * 50, 0) },
+  ];
+
+  // Line chart — simulate score across revenue range
+  const lineData = Array.from({ length: 11 }, (_, i) => {
+    const rev = data.revenue * (0.7 + i * 0.11);
+    const growth = rev / data.revenue;
+    const efficiencyGain = 0.02 * (growth - 1);
+    const newMargin = (data.netProfit / data.revenue) + efficiencyGain;
+    const updated = { ...data, revenue: rev, netProfit: rev * newMargin, expenses: rev - rev * newMargin };
+    const s = calculateScore(calculateMetrics(updated));
+    return { revenue: Math.round(rev), score: s };
+  });
 
   return (
     <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 12)",
-        } as React.CSSProperties
-      }
+      style={{
+        "--sidebar-width": "calc(var(--spacing) * 72)",
+        "--header-height": "calc(var(--spacing) * 12)",
+      } as React.CSSProperties}
     >
       <AppSidebar variant="inset" />
       <SidebarInset className="bg-background">
@@ -119,137 +122,198 @@ export default function Page() {
 
         <div className="min-h-screen bg-gradient-to-b from-background to-muted/40">
           <div className="p-6 space-y-6 max-w-5xl mx-auto">
+
             {/* HEADER */}
-            <div>
-              <h1 className="text-3xl font-semibold">AI Financial Health Analyzer</h1>
-              <p className="text-muted-foreground">
-                Upload your financial data and evaluate business performance
-              </p>
+            <div className="flex justify-between items-start">
+              <div>
+                <h1 className="text-3xl font-semibold">Dashboard</h1>
+                <p className="text-muted-foreground">
+                  {fileName && `Analyzing: ${fileName}`}
+                  {analyzedAt && ` · ${new Date(analyzedAt).toLocaleString()}`}
+                </p>
+              </div>
+              <Button variant="outline" asChild>
+                <Link href="/upload">Upload New</Link>
+              </Button>
             </div>
 
-            {/* UPLOAD */}
-            <Card>
-              <CardContent className="flex justify-between items-center p-4">
-                <p>Upload CSV file</p>
+            {/* SCORE + RADAR */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                <Button asChild>
-                  <label htmlFor="csv-upload" className="cursor-pointer">
-                    Choose File
-                  </label>
-                </Button>
-
-                <input
-                  id="csv-upload"
-                  type="file"
-                  accept=".csv"
-                  onChange={handleFile}
-                  className="hidden"
-                />
-              </CardContent>
-            </Card>
-
-            {/* SCORE */}
-            {score !== null && (
-              <Card className="p-6 flex flex-col items-center space-y-4">
-                <div
-                  className={`w-40 h-40 rounded-full flex items-center justify-center text-white text-4xl font-bold ${getColor()}`}
-                >
+              <Card className="p-6 flex flex-col items-center space-y-3">
+                <div className={`w-36 h-36 rounded-full flex items-center justify-center text-white text-4xl font-bold ${getScoreColor()}`}>
                   {score}
                 </div>
-                <p>Financial Health Score</p>
+                <p className="font-medium">Financial Health Score</p>
+                <p className="text-sm text-muted-foreground">
+                  {score >= 75 ? "Healthy — strong financial position"
+                    : score >= 50 ? "Moderate — monitor key metrics"
+                    : "At Risk — immediate attention needed"}
+                </p>
               </Card>
-            )}
+
+              <Card className="p-4">
+                <p className="font-medium mb-2">Health Radar</p>
+                <ResponsiveContainer width="100%" height={200}>
+                  <RadarChart data={radarData}>
+                    <PolarGrid />
+                    <PolarAngleAxis dataKey="metric" />
+                    <Radar dataKey="value" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.3} />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </Card>
+
+            </div>
+
+            {/* AI SUMMARY */}
+            <Card className="p-6 space-y-3">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="font-semibold">AI Financial Summary</p>
+                  <p className="text-sm text-muted-foreground">
+                    CFO-style analysis powered by Gemini
+                  </p>
+                </div>
+                <Button
+                  onClick={generateSummary}
+                  disabled={aiLoading}
+                  variant="outline"
+                  size="sm"
+                >
+                  {aiLoading ? "Analyzing..." : aiSummary ? "Regenerate" : "Generate Analysis"}
+                </Button>
+              </div>
+
+              {aiSummary && (
+                <p className="text-sm leading-relaxed text-foreground border-l-2 border-primary pl-4">
+                  {aiSummary}
+                </p>
+              )}
+
+              {!aiSummary && !aiLoading && (
+                <p className="text-sm text-muted-foreground">
+                  Click "Generate Analysis" to get an AI-powered financial summary
+                </p>
+              )}
+
+              {aiLoading && (
+                <p className="text-sm text-muted-foreground animate-pulse">
+                  Generating CFO analysis...
+                </p>
+              )}
+            </Card>
 
             {/* METRICS */}
-            {metrics && (
-              <div className="grid grid-cols-3 gap-4">
-                <Card className="p-4 text-center">
-                  <p className="text-base font-medium text-foreground">Liquidity</p>
-                  <p className="text-2xl font-bold tracking-tight text-green-600">
-                    {metrics.liquidity.toFixed(2)}
-                  </p>
-                </Card>
+            <div className="grid grid-cols-3 gap-4">
+              <Card className="p-4 text-center">
+                <p className="text-base font-medium">Liquidity</p>
+                <p className="text-2xl font-bold text-green-600">{metrics.liquidity.toFixed(2)}</p>
+                <p className="text-xs text-muted-foreground">assets / liabilities</p>
+              </Card>
+              <Card className="p-4 text-center">
+                <p className="text-base font-medium">Profitability</p>
+                <p className="text-2xl font-bold text-blue-600">{(metrics.profitability * 100).toFixed(1)}%</p>
+                <p className="text-xs text-muted-foreground">net profit / revenue</p>
+              </Card>
+              <Card className="p-4 text-center">
+                <p className="text-base font-medium">Leverage</p>
+                <p className="text-2xl font-bold text-red-600">{metrics.leverage.toFixed(2)}</p>
+                <p className="text-xs text-muted-foreground">debt / equity</p>
+              </Card>
+            </div>
 
-                <Card className="p-4 text-center">
-                  <p className="text-base font-medium text-foreground">Profitability</p>
-                  <p className="text-2xl font-bold tracking-tight text-blue-600">
-                    {(metrics.profitability * 100).toFixed(1)}%
-                  </p>
-                </Card>
-
-                <Card className="p-4 text-center">
-                  <p className="text-base font-medium text-foreground">Leverage</p>
-                  <p className="text-2xl font-bold tracking-tight text-red-600">
-                    {metrics.leverage.toFixed(2)}
-                  </p>
-                </Card>
-              </div>
-            )}
+            {/* BAR CHART */}
+            <Card className="p-4">
+              <p className="font-medium mb-4">Financial Overview</p>
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={barData}>
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </Card>
 
             {/* INSIGHTS */}
             {insights.length > 0 && (
-              <Card className="p-6 space-y-2">
+              <Card className="p-6 space-y-3">
                 <p className="font-semibold">Insights</p>
                 {insights.map((item, i) => (
                   <div key={i} className="flex items-start gap-2 text-sm">
-                    <div
-                      className={`mt-1 h-2 w-2 rounded-full ${
-                        item.type === "positive"
-                          ? "bg-green-500"
-                          : item.type === "negative"
-                            ? "bg-red-500"
-                            : "bg-yellow-500"
-                      }`}
-                    />
+                    <div className={`mt-1 h-2 w-2 rounded-full flex-shrink-0 ${
+                      item.type === "positive" ? "bg-green-500"
+                        : item.type === "negative" ? "bg-red-500"
+                        : "bg-yellow-500"
+                    }`} />
                     <p>{item.label}</p>
                   </div>
                 ))}
               </Card>
             )}
 
-            {/* SIMULATOR */}
-            {data && simRevenue !== null && (
-              <Card className="p-6 space-y-4">
+            {/* SIMULATOR + LINE CHART */}
+            <Card className="p-6 space-y-4">
+              <div>
                 <p className="font-semibold">What-if Simulator</p>
+                <p className="text-sm text-muted-foreground">Adjust revenue to see score impact</p>
+              </div>
 
-                <input
-                  type="range"
-                  min={data.revenue * 0.7}
-                  max={data.revenue * 1.8}
-                  step={1000}
-                  value={simRevenue}
-                  onChange={(e) => setSimRevenue(Number(e.target.value))}
-                  className="w-full"
-                />
+              <input
+                type="range"
+                min={data.revenue * 0.7}
+                max={data.revenue * 1.8}
+                step={1000}
+                value={simRevenue ?? data.revenue}
+                onChange={(e) => setSimRevenue(Number(e.target.value))}
+                className="w-full accent-primary cursor-pointer"
+              />
 
-                <div className="flex justify-between text-sm">
-                  <span>{Math.round(data.revenue * 0.7)}</span>
-                  <span>{Math.round(data.revenue * 1.8)}</span>
-                </div>
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>{Math.round(data.revenue * 0.7)}</span>
+                <span>{Math.round(data.revenue * 1.8)}</span>
+              </div>
 
-                <p>
-                  Revenue: <span className="font-semibold text-lg text-orange-500">{simRevenue}</span> | Score: <span className={`font-bold text-lg ${simScore && score && simScore > score ? "text-green-600 "
-                    : simScore && score && simScore < score ? "text-red-600"
-                      : "text-blue-600"
-                    }`}>{simScore}</span>
+              <div className="flex justify-between items-center">
+                <p className="text-sm">
+                  Revenue: <span className="font-semibold text-orange-500">{simRevenue}</span>
                 </p>
+                <p className="text-sm">
+                  Score:{" "}
+                  <span className={`font-bold ${
+                    simScore && simScore > score ? "text-green-600"
+                      : simScore && simScore < score ? "text-red-600"
+                      : "text-blue-600"
+                  }`}>{simScore}</span>
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Growth: {growthPercent.toFixed(1)}%
+                </p>
+              </div>
 
-                <p className="text-sm text-muted-foreground">Growth: {growthPercent.toFixed(1)}%</p>
-              </Card>
-            )}
+              <ResponsiveContainer width="100%" height={180}>
+                <LineChart data={lineData}>
+                  <XAxis dataKey="revenue" tick={{ fontSize: 10 }} />
+                  <YAxis domain={[0, 100]} />
+                  <Tooltip />
+                  <Line dataKey="score" stroke="#3b82f6" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </Card>
 
             {/* SUGGESTIONS */}
             {suggestions.length > 0 && (
-              <Card className="p-6 space-y-2">
-                <p className="font-semibold">Suggestions</p>
+              <Card className="p-6 space-y-3">
+                <p className="font-semibold">Improvement Suggestions</p>
                 {suggestions.map((s, i) => (
                   <div key={i} className="flex items-start gap-2 text-sm">
-                    <div className="h-2 w-2 mt-1 rounded-full bg-primary" />
+                    <div className="h-2 w-2 mt-1 rounded-full bg-primary flex-shrink-0" />
                     <p>{s}</p>
                   </div>
                 ))}
               </Card>
             )}
+
           </div>
         </div>
       </SidebarInset>
