@@ -28,6 +28,7 @@ import {
   FileTextIcon,
   ActivityIcon,
 } from "lucide-react"
+import Link from "next/link"
 
 const data = {
   user: {
@@ -37,32 +38,12 @@ const data = {
   },
 
   navMain: [
-    {
-      title: "Dashboard",
-      url: "/",
-      icon: <LayoutDashboardIcon />,
-    },
-    {
-      title: "Upload Data",
-      url: "/upload",
-      icon: <UploadIcon />,
-    },
-    {
-      title: "Risk Assessment",
-      url: "/risk",
-      icon: <ShieldAlertIcon />,
-    },
-    {
-      title: "Investment Insights",
-      url: "/insights",
-      icon: <TrendingUpIcon />,
-    },
-    {
-      title: "Score History",
-      url: "/history",
-      icon: <HistoryIcon />,
-    },
-  ],
+  { title: "Dashboard",          url: "/dashboard", icon: <LayoutDashboardIcon /> },
+  { title: "Upload Data",        url: "/upload",    icon: <UploadIcon /> },
+  { title: "Risk Assessment",    url: "/risk",       icon: <ShieldAlertIcon /> },
+  { title: "Investment Insights",url: "/insights",  icon: <TrendingUpIcon /> },
+  { title: "Score History",      url: "/history",   icon: <HistoryIcon /> },
+],
 
   documents: [
     {
@@ -106,10 +87,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:p-1.5!"
             >
-              <a href="/">
+              <Link href="/dashboard">
                 <ActivityIcon className="size-5!" />
                 <span className="text-base font-semibold">FinHealth AI</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
