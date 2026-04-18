@@ -38,11 +38,11 @@ const data = {
   },
 
   navMain: [
-  { title: "Dashboard",           url: "/dashboard",  icon: <LayoutDashboardIcon /> },
-  { title: "Upload Data",         url: "/upload",     icon: <UploadIcon /> },
-  { title: "Risk Assessment",     url: "/risk",       icon: <ShieldAlertIcon /> },
-  { title: "Investment Insights", url: "/insights",   icon: <TrendingUpIcon /> },
-  { title: "Score History",       url: "/history",    icon: <HistoryIcon /> },
+  { title: "Dashboard",           url: "/dashboard",      icon: <LayoutDashboardIcon /> },
+  { title: "Upload Data",         url: "/upload",         icon: <UploadIcon /> },
+  { title: "Risk Assessment",     url: "/risk",           icon: <ShieldAlertIcon /> },
+  { title: "Investment Insights", url: "/investment",     icon: <TrendingUpIcon /> },
+  { title: "Score History",       url: "/history",        icon: <HistoryIcon /> },
 ],
 
   documents: [
