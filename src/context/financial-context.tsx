@@ -98,12 +98,40 @@ export function FinancialProvider({ children }: { children: ReactNode }) {
     setAiSummary(null);
     setMlResult(null);
 
+    // Save current analysis
     localStorage.setItem("finhealth_analysis", JSON.stringify({
       data: cleaned, metrics: m, score: s,
       insights: i, suggestions: sg,
       fileName, analyzedAt: ts,
       aiSummary: null, mlResult: null,
     }));
+
+    // Add to reports history
+    const companyName = fileName.replace(".csv", "") || "Analysis";
+    const date = new Date(ts).toLocaleDateString();
+    let riskLevel = "Unknown";
+    if (s >= 75) {
+      riskLevel = "Low Risk";
+    } else if (s >= 50) {
+      riskLevel = "Medium Risk";
+    } else {
+      riskLevel = "High Risk";
+    }
+
+    const newReport = {
+      id: `report-${Date.now()}`,
+      companyName,
+      date,
+      healthScore: s,
+      zScore: m.zScore || 0,
+      investmentScore: m.investmentScore || 0,
+      riskLevel: riskLevel,
+    };
+
+    // Get existing reports and append new one
+    const existingReports = JSON.parse(localStorage.getItem("finhealth_reports") || "[]");
+    existingReports.push(newReport);
+    localStorage.setItem("finhealth_reports", JSON.stringify(existingReports));
   };
 
   const generateSummary = async () => {

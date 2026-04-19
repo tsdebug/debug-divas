@@ -28,28 +28,15 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load the current analysis from localStorage
-    const stored = localStorage.getItem("finhealth_analysis");
-    if (stored) {
-      try {
-        const data = JSON.parse(stored);
-        const companyName = data.fileName?.replace(".csv", "") || "Analysis";
-        const date = data.analyzedAt ? new Date(data.analyzedAt).toLocaleDateString() : new Date().toLocaleDateString();
-        
-        const report: Report = {
-          id: `report-${Date.now()}`,
-          companyName,
-          date,
-          healthScore: data.score || 0,
-          zScore: data.metrics?.zScore || 0,
-          investmentScore: data.metrics?.investmentScore || 0,
-          riskLevel: data.insights?.[0]?.category || "Unknown",
-        };
-        
-        setReports([report]);
-      } catch (error) {
-        console.error("Failed to load report:", error);
+    // Load all reports from localStorage
+    try {
+      const storedReports = localStorage.getItem("finhealth_reports");
+      if (storedReports) {
+        const allReports = JSON.parse(storedReports);
+        setReports(allReports);
       }
+    } catch (error) {
+      console.error("Failed to load reports:", error);
     }
     setLoading(false);
   }, []);
