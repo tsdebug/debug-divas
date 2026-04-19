@@ -20,11 +20,7 @@ import {
   UploadIcon,
   ShieldAlertIcon,
   TrendingUpIcon,
-  HistoryIcon,
-  Settings2Icon,
-  CircleHelpIcon,
   FileChartColumnIcon,
-  DatabaseIcon,
   FileTextIcon,
   ActivityIcon,
 } from "lucide-react"
@@ -42,39 +38,22 @@ const data = {
   { title: "Upload Data",         url: "/upload",         icon: <UploadIcon /> },
   { title: "Risk Assessment",     url: "/risk",           icon: <ShieldAlertIcon /> },
   { title: "Investment Insights", url: "/investment",     icon: <TrendingUpIcon /> },
-  { title: "Score History",       url: "/history",        icon: <HistoryIcon /> },
 ],
 
   documents: [
-    {
-      name: "Financial Reports",
-      url: "/reports",
-      icon: <FileChartColumnIcon />,
-    },
-    {
-      name: "SME Data Library",
-      url: "/data-library",
-      icon: <DatabaseIcon />,
-    },
     {
       name: "Score Explanations",
       url: "/explanations",
       icon: <FileTextIcon />,
     },
+    {
+      name: "Financial Reports",
+      url: "/reports",
+      icon: <FileChartColumnIcon />,
+    },
   ],
 
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "/settings",
-      icon: <Settings2Icon />,
-    },
-    {
-      title: "Get Help",
-      url: "/help",
-      icon: <CircleHelpIcon />,
-    },
-  ],
+  navSecondary: [],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
