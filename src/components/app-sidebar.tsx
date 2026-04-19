@@ -1,6 +1,8 @@
 "use client"
 
 import * as React from "react"
+import { useEffect, useState } from "react"
+import { createClient } from "@/lib/supabase/client"
 
 import { NavDocuments } from "@/components/nav-documents"
 import { NavMain } from "@/components/nav-main"
@@ -27,12 +29,6 @@ import {
 import Link from "next/link"
 
 const data = {
-  user: {
-    name: "Analyst",
-    email: "analyst@finhealth.ai",
-    avatar: "/avatars/user.jpg",
-  },
-
   navMain: [
   { title: "Dashboard",           url: "/dashboard",      icon: <LayoutDashboardIcon /> },
   { title: "Upload Data",         url: "/upload",         icon: <UploadIcon /> },
@@ -57,6 +53,33 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const [user, setUser] = useState({
+    name: "User",
+    email: "user@example.com",
+    avatar: "/avatars/user.jpg",
+  })
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const supabase = createClient()
+        const { data: { user: authUser } } = await supabase.auth.getUser()
+        if (authUser) {
+          const name = authUser.user_metadata?.full_name || authUser.email?.split("@")[0] || "User"
+          setUser({
+            name,
+            email: authUser.email || "user@example.com",
+            avatar: "/avatars/user.jpg",
+          })
+        }
+      } catch (error) {
+        console.error("Failed to fetch user:", error)
+      }
+    }
+
+    fetchUser()
+  }, [])
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -82,7 +105,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
 
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
   )
