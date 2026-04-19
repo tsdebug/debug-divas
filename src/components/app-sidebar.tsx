@@ -91,7 +91,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <Link href="/dashboard">
                 <ActivityIcon className="size-5!" />
-                <span className="text-base font-semibold">FinHealth AI</span>
+                <span className="text-base font-semibold">FinScoreAI</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

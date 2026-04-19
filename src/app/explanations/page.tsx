@@ -240,7 +240,7 @@ export default function ExplanationsPage() {
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <p>
-            FinHealth AI combines <strong>traditional financial analysis</strong> with <strong>machine learning</strong> for robust risk assessment:
+            FinScoreAI combines <strong>traditional financial analysis</strong> with <strong>machine learning</strong> for robust risk assessment:
           </p>
           <ul className="list-disc list-inside space-y-2 text-muted-foreground">
             <li><strong>Altman Z-Score:</strong> Provides interpretable, theory-backed bankruptcy risk assessment</li>

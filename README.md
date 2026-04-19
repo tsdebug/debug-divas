@@ -1,10 +1,10 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## 📊 FinHealth AI - Machine Learning Model Documentation
+## 📊 FinScoreAI - Machine Learning Model Documentation
 
 ### Model Overview
 
-**FinHealth AI** is an AI-driven financial analysis platform that combines:
+**FinScoreAI** is an AI-driven financial analysis platform that combines:
 - **Random Forest ML Model** - Bankruptcy prediction & financial health assessment
 - **Gemini LLM API** - Contextual financial insights and AI-powered analysis
 - **Financial Metrics Engine** - Altman Z-Score, liquidity ratios, profitability analysis
