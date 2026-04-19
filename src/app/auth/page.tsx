@@ -13,6 +13,7 @@ function AuthForm() {
   const [mode, setMode] = useState<Mode>("login");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
+  const [banner, setBanner] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [form, setForm] = useState({ email: "", password: "", name: "", confirmPassword: "" });
 
@@ -30,6 +31,7 @@ function AuthForm() {
   const setField = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((f) => ({ ...f, [k]: e.target.value }));
     setError("");
+    setBanner(null);
   };
 
   const validate = () => {
@@ -63,6 +65,7 @@ function AuthForm() {
         return;
       }
 
+      setBanner(null);
       router.push("/dashboard");
       router.refresh();
     }
@@ -87,7 +90,11 @@ function AuthForm() {
         return;
       }
 
-      setSuccess("check_email_signup");
+      setMode("login");
+      setForm((f) => ({ ...f, password: "", name: "", confirmPassword: "" }));
+      setBanner("Account created successfully. Please log in.");
+      setLoading(false);
+      return;
     }
 
     if (mode === "forgot") {
@@ -114,10 +121,6 @@ function AuthForm() {
   };
 
   const successMessages: Record<string, { title: string; body: string }> = {
-    check_email_signup: {
-      title: "Check your inbox",
-      body: `We sent a confirmation link to ${form.email}. Click it to activate your account.`,
-    },
     check_email_reset: {
       title: "Reset link sent",
       body: `If ${form.email} is registered, you'll receive a password reset link shortly.`,
@@ -203,7 +206,7 @@ function AuthForm() {
           {mode !== "forgot" && !success && (
             <div style={{ display: "flex", gap: 4, background: "rgba(255,255,255,0.04)", borderRadius: 10, padding: 4, marginBottom: 32 }}>
               <button className={`tab-btn${mode === "login" ? " active" : ""}`} onClick={() => { setMode("login"); setError(""); setSuccess(null); }}>Log in</button>
-              <button className={`tab-btn${mode === "signup" ? " active" : ""}`} onClick={() => { setMode("signup"); setError(""); setSuccess(null); }}>Sign up</button>
+              <button className={`tab-btn${mode === "signup" ? " active" : ""}`} onClick={() => { setMode("signup"); setError(""); setSuccess(null); setBanner(null); }}>Sign up</button>
             </div>
           )}
 
@@ -266,6 +269,7 @@ function AuthForm() {
               )}
 
               {error && <div className="error-box">{error}</div>}
+              {banner && <div className="success-box">{banner}</div>}
 
               <button type="submit" className="auth-btn" disabled={loading}>
                 {loading
@@ -276,7 +280,7 @@ function AuthForm() {
 
               {mode === "forgot" && (
                 <div style={{ textAlign: "center" }}>
-                  <button type="button" className="text-link" onClick={() => { setMode("login"); setError(""); }}>
+                  <button type="button" className="text-link" onClick={() => { setMode("login"); setError(""); setBanner(null); }}>
                     ← Back to log in
                   </button>
                 </div>
@@ -289,13 +293,13 @@ function AuthForm() {
         {!success && mode === "login" && (
           <p style={{ textAlign: "center", color: "#4a5568", fontSize: 14, marginTop: 20 }}>
             Don't have an account?{" "}
-            <button className="text-link" onClick={() => { setMode("signup"); setError(""); }}>Sign up free</button>
+            <button className="text-link" onClick={() => { setMode("signup"); setError(""); setBanner(null); }}>Sign up free</button>
           </p>
         )}
         {!success && mode === "signup" && (
           <p style={{ textAlign: "center", color: "#4a5568", fontSize: 14, marginTop: 20 }}>
             Already have an account?{" "}
-            <button className="text-link" onClick={() => { setMode("login"); setError(""); }}>Log in</button>
+            <button className="text-link" onClick={() => { setMode("login"); setError(""); setBanner(null); }}>Log in</button>
           </p>
         )}
 
