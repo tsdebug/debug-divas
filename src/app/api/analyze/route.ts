@@ -46,7 +46,7 @@ Rules: formal banking language, no bullet points, reference at least 3 numbers, 
     const [geminiResult, mlResult] = await Promise.allSettled([
       getGeminiSummary(),
 
-      fetch("http://localhost:8000/predict", {
+      fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL || "http://localhost:8000"}/predict`, {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
